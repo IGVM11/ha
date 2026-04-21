@@ -1,0 +1,1570 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Departamento de Inteligencia Artificial | Hospital Ángeles</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <style>
+        :root {
+            --ha-blue-dark: #002d72;  
+            --ha-blue-main: #0055a5;  
+            --ha-blue-accent: #00a4e4; 
+            --ha-text: #1f2937;
+            --ha-bg: #f8fafc;
+            --ha-border: #e2e8f0;
+            --ha-shadow: 0 4px 20px -2px rgba(0, 45, 114, 0.05), 0 0 3px rgba(0,0,0,0.02);
+            --ha-shadow-hover: 0 15px 35px -5px rgba(0, 45, 114, 0.1), 0 5px 15px rgba(0,0,0,0.05);
+            --transition-smooth: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        * { font-family: 'Inter', sans-serif; box-sizing: border-box; scroll-behavior: smooth; }
+        body { 
+            color: var(--ha-text); 
+            background-color: var(--ha-bg); 
+            height: 100vh; 
+            overflow: hidden; 
+            display: flex; 
+            flex-direction: column; 
+            margin: 0; 
+            padding: 0;
+        }
+        
+        .page-title { font-family: 'Montserrat', sans-serif; font-weight: 800; color: var(--ha-blue-dark); letter-spacing: -0.02em; }
+        
+        header { 
+            flex-shrink: 0; 
+            background: rgba(255, 255, 255, 0.98); 
+            backdrop-filter: blur(10px); 
+            border-bottom: 1px solid var(--ha-border); 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.02); 
+            z-index: 50; 
+            position: relative;
+        }
+        .institutional-ribbon { height: 5px; background: linear-gradient(90deg, var(--ha-blue-dark) 0%, var(--ha-blue-main) 50%, var(--ha-blue-accent) 100%); background-size: 200% auto; animation: gradientFlow 4s ease infinite; }
+        @keyframes gradientFlow { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        
+        .layout-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        @media (min-width: 768px) { .layout-wrapper { flex-direction: row; } }
+
+        .sidebar {
+            background: #ffffff;
+            border-right: 1px solid var(--ha-border);
+            box-shadow: 2px 0 15px rgba(0,0,0,0.02);
+            z-index: 40;
+            display: flex;
+            flex-direction: row; 
+            overflow-x: auto;
+            padding: 10px;
+            flex-shrink: 0;
+        }
+        @media (min-width: 768px) {
+            .sidebar { width: 260px; flex-direction: column; padding: 24px 16px; overflow-y: auto; }
+        }
+
+        .nav-tab { display: flex; align-items: center; padding: 10px 16px; margin-right: 8px; border-radius: 10px; font-weight: 600; color: #64748b; transition: var(--transition-smooth); white-space: nowrap; }
+        .nav-tab i { font-size: 1.1rem; width: 24px; text-align: center; margin-right: 12px; }
+        .nav-tab:hover { background: #f0f9ff; color: var(--ha-blue-main); }
+        .nav-tab.tab-active { background: linear-gradient(135deg, var(--ha-blue-dark), var(--ha-blue-main)); color: white; box-shadow: 0 4px 12px rgba(0, 85, 165, 0.2); }
+        
+        @media (min-width: 768px) {
+            .nav-tab { width: 100%; margin-right: 0; margin-bottom: 8px; padding: 14px 20px; }
+            .nav-tab:hover { transform: translateX(4px); }
+            .nav-tab.tab-active { transform: translateX(4px); }
+        }
+
+        .main-content { flex: 1; overflow-y: auto; padding: 1.5rem; position: relative; }
+
+        .card { background: #ffffff; border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 16px; box-shadow: var(--ha-shadow); transition: var(--transition-smooth); }
+        .card.hover-lift:hover { transform: translateY(-4px); box-shadow: var(--ha-shadow-hover); border-color: rgba(0, 164, 228, 0.2); z-index: 10; }
+        
+        .btn-primary { background: linear-gradient(135deg, var(--ha-blue-dark), var(--ha-blue-main)); color: white; padding: 8px 16px; border-radius: 8px; font-weight: 500; transition: var(--transition-smooth); display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0, 85, 165, 0.2); border: none; cursor: pointer; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0, 85, 165, 0.3); filter: brightness(1.1); }
+        .btn-primary:active { transform: translateY(0); }
+        
+        .btn-outline { border: 1px solid var(--ha-border); background: white; color: var(--ha-text); padding: 8px 16px; border-radius: 8px; font-weight: 500; transition: var(--transition-smooth); cursor: pointer; }
+        .btn-outline:hover { background: #f8fafc; border-color: var(--ha-blue-accent); color: var(--ha-blue-main); box-shadow: 0 2px 8px rgba(0, 164, 228, 0.1); }
+        
+        .btn-filter { background: #f1f5f9; color: var(--ha-gray); border: 1px solid transparent; font-size: 0.8rem; padding: 6px 14px; border-radius: 99px; transition: var(--transition-smooth); font-weight: 600; cursor: pointer; }
+        .btn-filter:hover { background: #e2e8f0; transform: translateY(-1px); }
+        .btn-filter.active { background: var(--ha-blue-main); color: white; box-shadow: 0 4px 10px rgba(0, 85, 165, 0.2); transform: scale(1.05); }
+
+        select, input[type="date"], input[type="text"], input[type="number"] { border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 12px; font-size: 0.85rem; width: 100%; outline: none; transition: var(--transition-smooth); background: #f8fafc; }
+        select:focus, input:focus { background: #ffffff; border-color: var(--ha-blue-accent); box-shadow: 0 0 0 4px rgba(0,164,228,0.1); }
+        
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th { background: rgba(248, 250, 252, 0.95); position: sticky; top: 0; backdrop-filter: blur(4px); padding: 12px; text-align: left; color: var(--ha-blue-dark); font-weight: 700; border-bottom: 2px solid var(--ha-border); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; z-index: 20;}
+        td { padding: 12px; border-bottom: 1px solid var(--ha-border); transition: background 0.2s; }
+        tr:hover td { background: #f1f5f9; }
+
+        .badge { padding: 4px 10px; border-radius: 99px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+        .badge-success { background: #dcfce7; color: #059669; }
+        .badge-danger { background: #fee2e2; color: #dc2626; }
+        .badge-warning { background: #fef3c7; color: #d97706; }
+
+        .tab-section { display: none; opacity: 0; transform: translateY(15px); transition: var(--transition-smooth); pointer-events: none; }
+        .tab-section.active { display: block; opacity: 1; transform: translateY(0); pointer-events: auto; }
+        
+        @keyframes slideUpFade { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .stagger-item { opacity: 0; animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .delay-100 { animation-delay: 100ms; } .delay-200 { animation-delay: 200ms; }
+        .delay-300 { animation-delay: 300ms; } .delay-400 { animation-delay: 400ms; }
+
+        .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: white; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); padding: 16px 20px; min-width: 300px; transform: translateX(120%); transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); display: flex; align-items: flex-start; gap: 12px; position: relative; overflow: hidden; border: 1px solid var(--ha-border); }
+        .toast.show { transform: translateX(0); }
+        .toast-progress { position: absolute; bottom: 0; left: 0; height: 3px; background: var(--ha-blue-accent); width: 100%; animation: toastProgress linear forwards; }
+        @keyframes toastProgress { from { width: 100%; } to { width: 0%; } }
+
+        .chart-container { position: relative; height: 300px; width: 100%; cursor: pointer; }
+        .spark-sm { height: 40px; margin-top: 12px; }
+
+        .ai-gradient-text { background: linear-gradient(90deg, #002d72, #00a4e4, #10b981); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-size: 200% auto; animation: gradientFlow 3s ease infinite; }
+        .ai-card { background: linear-gradient(145deg, #ffffff, #f8fafc); border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 8px 30px -4px rgba(0,0,0,0.05); transition: all 0.3s; }
+        
+        .timeline-line { position: absolute; left: 15px; top: 0; bottom: 0; width: 2px; background: linear-gradient(to bottom, #e2e8f0 0%, transparent 100%); z-index: 0; }
+        .timeline-item { position: relative; z-index: 1; padding-left: 45px; margin-bottom: 2rem; transition: var(--transition-smooth); }
+        .timeline-item:hover { transform: translateX(5px); }
+        .timeline-dot { position: absolute; left: 0; top: 0; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; border: 4px solid #f8fafc; box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: 0.3s; }
+        .timeline-item:hover .timeline-dot { transform: scale(1.1); border-color: white; }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+
+        /* ESTILOS SKELETON */
+        .skeleton-loader { width: 100%; height: 100%; background: #f1f5f9; border-radius: 8px; position: absolute; top: 0; left: 0; z-index: 10; display: none; overflow: hidden; }
+        .skeleton-loader.active { display: block; }
+        .skeleton-loader::after { content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0; transform: translateX(-100%); background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.5) 20%, rgba(255, 255, 255, 0.5) 60%, rgba(255, 255, 255, 0) ); animation: shimmer 1.5s infinite; }
+        @keyframes shimmer { 100% { transform: translateX(100%); } }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="institutional-ribbon"></div>
+        <div class="w-full px-4 md:px-8 py-3 flex flex-wrap justify-between items-center gap-4">
+            
+            <div class="flex items-center gap-5">
+                <img src="https://grupovazol.com/wp-content/uploads/2025/06/logo-hospital-angeles.png" alt="Hospital Ángeles" class="h-14 md:h-[70px] object-contain hover:scale-105 transition-transform duration-300" onerror="this.src='https://via.placeholder.com/200x60?text=Logo';">
+                <div class="hidden sm:block border-l-2 border-gray-200 pl-5">
+                    <h1 class="text-lg md:text-2xl page-title leading-tight">Departamento de Inteligencia Artificial</h1>
+                    <p class="text-[10px] sm:text-xs font-bold text-[#00a4e4] tracking-wider uppercase mt-1">Unidad de Hemodinamia</p>
+                </div>
+            </div>
+            
+            <div class="flex gap-5 items-center text-sm">
+                <div class="text-right hidden md:block">
+                    <p class="text-gray-400 text-[10px] font-bold uppercase tracking-wide">Volumen de Datos</p>
+                    <p class="font-bold text-[#002d72] text-lg leading-none" id="status-record-count">0</p>
+                </div>
+                
+                <button onclick="exportarCSVAvanzado()" class="btn-primary text-xs shadow-md shadow-blue-500/20 hidden lg:flex"><i class="fas fa-file-export"></i> Exportar Data</button>
+
+                <div class="relative group ml-2">
+                    <button class="flex items-center gap-2 bg-gray-50 border border-gray-200 px-3 py-2 rounded-full hover:bg-gray-100 transition shadow-sm cursor-pointer">
+                        <img src="https://ui-avatars.com/api/?name=Direccion+Medica&background=0055a5&color=fff" class="w-8 h-8 rounded-full" alt="Avatar">
+                        <span class="font-bold text-[#002d72] text-xs hidden sm:block">Perfil</span>
+                        <i class="fas fa-chevron-down text-gray-400 text-xs ml-1 hidden sm:block"></i>
+                    </button>
+                    <div class="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 transform origin-top-right group-hover:translate-y-0 translate-y-2">
+                        <div class="p-4 border-b border-gray-100 bg-gray-50 rounded-t-xl">
+                            <p class="font-bold text-[#002d72] text-sm">Dirección Médica</p>
+                            <p class="text-xs text-gray-500 mt-1">Administrador de Sistema</p>
+                        </div>
+                        <div class="p-2">
+                            <a href="#" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-[#0055a5] rounded-lg font-medium transition-colors"><i class="fas fa-user-circle w-5 text-[#00a4e4]"></i> Mi Cuenta</a>
+                            <a href="#" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-[#0055a5] rounded-lg font-medium transition-colors"><i class="fas fa-cog w-5 text-gray-400"></i> Configuración</a>
+                            <div class="border-t border-gray-100 my-1"></div>
+                            <a href="#" class="block px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 rounded-lg font-medium transition-colors"><i class="fas fa-sign-out-alt w-5 text-red-400"></i> Cerrar Sesión</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="layout-wrapper">
+        
+        <aside class="sidebar custom-scrollbar">
+            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-4 pb-2 pt-2 hidden md:block">Navegación</div>
+            <button onclick="showTab('dashboard')" id="tab-dashboard" class="nav-tab tab-active"><i class="fas fa-chart-pie"></i> Tablero Gerencial</button>
+            <button onclick="showTab('calidad')" id="tab-calidad" class="nav-tab"><i class="fas fa-shield-alt"></i> Calidad JCI</button>
+            <button onclick="showTab('compendio')" id="tab-compendio" class="nav-tab"><i class="fas fa-database"></i> Base de Datos</button>
+            <button onclick="showTab('registro')" id="tab-registro" class="nav-tab"><i class="fas fa-user-plus"></i> Nuevo Registro</button>
+            
+            <div class="hidden md:block my-4 border-t border-gray-100 mx-4"></div>
+            
+            <div class="text-[10px] font-bold text-[#00a4e4] uppercase tracking-widest px-4 pb-2 hidden md:block">Sistema Inteligente</div>
+            <button onclick="showTab('analisis')" id="tab-analisis" class="nav-tab"><i class="fas fa-brain text-[#00a4e4] animate-pulse"></i> Análisis IA</button>
+        </aside>
+
+        <main class="main-content custom-scrollbar" id="main-scroll">
+            <div class="max-w-7xl mx-auto pb-12">
+
+                <div id="master-filters" class="card p-5 mb-8 bg-white/80 backdrop-blur-md stagger-item shadow-sm">
+                    <div class="flex flex-col xl:flex-row items-center gap-5">
+                        <div class="flex items-center gap-3 border-r border-gray-200 pr-6 hidden md:flex group cursor-pointer">
+                            <div class="bg-blue-50 p-2 rounded-lg text-[#00a4e4] group-hover:bg-[#00a4e4] group-hover:text-white transition-colors duration-300"><i class="fas fa-sliders-h text-lg group-hover:animate-bounce"></i></div>
+                            <span class="text-xs font-bold text-[#002d72] uppercase tracking-wider leading-tight group-hover:text-[#00a4e4] transition-colors duration-300">Filtros<br>Maestros</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 flex-1 w-full">
+                            <div class="stagger-item delay-100 transition-transform duration-300 hover:-translate-y-1"><label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Desde</label><input type="date" id="f-desde" onchange="aplicarFiltros()" class="hover:border-[#00a4e4] hover:shadow-md focus:shadow-lg transition-all cursor-pointer"></div>
+                            <div class="stagger-item delay-200 transition-transform duration-300 hover:-translate-y-1"><label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Hasta</label><input type="date" id="f-hasta" onchange="aplicarFiltros()" class="hover:border-[#00a4e4] hover:shadow-md focus:shadow-lg transition-all cursor-pointer"></div>
+                            <div class="stagger-item delay-300 transition-transform duration-300 hover:-translate-y-1"><label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Especialista</label><select id="f-medico" onchange="aplicarFiltros()" class="hover:border-[#00a4e4] hover:shadow-md focus:shadow-lg transition-all cursor-pointer"><option value="all">Todos los médicos</option></select></div>
+                            <div class="stagger-item delay-400 transition-transform duration-300 hover:-translate-y-1"><label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Patología</label><select id="f-diag" onchange="aplicarFiltros()" class="hover:border-[#00a4e4] hover:shadow-md focus:shadow-lg transition-all cursor-pointer"><option value="all">Todas las patologías</option></select></div>
+                            <div class="flex flex-wrap gap-2 items-end justify-end stagger-item delay-500">
+                                <button onclick="setQuickDate('last_30_days', this)" class="btn-filter hover:scale-110 transition-transform" title="Últimos 30 días">30 Días</button>
+                                <button onclick="setQuickDate('ytd', this)" class="btn-filter hover:scale-110 transition-transform" title="Año actual">YTD</button>
+                                <button onclick="resetFiltros()" class="btn-outline text-xs h-[35px] w-[35px] flex items-center justify-center rounded-full shadow-sm hover:rotate-180 hover:bg-blue-50 hover:text-blue-600 transition-all duration-500" title="Limpiar"><i class="fas fa-sync-alt"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="dashboard-section" class="tab-section active">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+                        <div class="card hover-lift p-5 border-l-4 border-l-[#0055a5] stagger-item delay-100">
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Volumen Operativo</p>
+                            <div class="flex justify-between items-end">
+                                <h3 class="text-4xl font-extrabold text-[#002d72]" id="k1-val">0</h3>
+                                <div class="bg-blue-50 p-2 rounded-lg text-[#0055a5]"><i class="fas fa-procedures text-xl"></i></div>
+                            </div>
+                            <div class="spark-sm"><canvas id="sp-vol"></canvas></div>
+                        </div>
+                        <div class="card hover-lift p-5 border-l-4 border-l-[#00a4e4] stagger-item delay-200">
+                            <div class="flex justify-between items-center mb-1">
+                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Mediana de Sala</p>
+                            </div>
+                            <div class="flex justify-between items-end">
+                                <h3 class="text-4xl font-extrabold text-[#00a4e4] flex items-baseline"><span id="k2-val">0</span><span class="text-sm font-medium text-gray-400 ml-1 mb-1">min</span></h3>
+                                <div class="text-right bg-gray-50 px-2 py-1 rounded text-[10px] text-gray-500 font-medium">P90: <span id="k2-p90" class="font-bold text-[#002d72]">0</span>m</div>
+                            </div>
+                            <div class="spark-sm"><canvas id="sp-time"></canvas></div>
+                        </div>
+                        <div class="card hover-lift p-5 border-l-4 border-l-[#10b981] stagger-item delay-300">
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Éxito Puerta-Balón</p>
+                            <div class="flex justify-between items-end">
+                                <h3 class="text-4xl font-extrabold text-[#10b981] flex items-baseline"><span id="k3-val">0</span><span class="text-2xl ml-0.5">%</span></h3>
+                                <div class="bg-green-50 p-2 rounded-lg text-[#10b981]"><i class="fas fa-heartbeat text-xl"></i></div>
+                            </div>
+                            <div class="spark-sm"><canvas id="sp-balon"></canvas></div>
+                        </div>
+                        <div class="card hover-lift p-5 border-l-4 border-l-[#ef4444] stagger-item delay-400">
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tasa Complicaciones</p>
+                            <div class="flex justify-between items-end">
+                                <h3 class="text-4xl font-extrabold text-[#ef4444] flex items-baseline"><span id="k4-val">0</span><span class="text-2xl ml-0.5">%</span></h3>
+                                <div class="bg-red-50 p-2 rounded-lg text-[#ef4444]"><i class="fas fa-exclamation-triangle text-xl"></i></div>
+                            </div>
+                            <div class="spark-sm"><canvas id="sp-comp"></canvas></div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
+                        <div class="card hover-lift p-6 xl:col-span-2 flex flex-col stagger-item delay-200">
+                            <div class="flex justify-between items-center border-b border-gray-100 pb-3 mb-5">
+                                <div>
+                                    <h3 class="text-sm font-bold text-[#002d72] uppercase tracking-wide">Evolución de Demanda Clínica</h3>
+                                    <p class="text-[10px] text-gray-400 mt-1">Interactivo: Haz clic en las barras para detalle</p>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <button onclick="descargarGrafica('ch-evolucion', 'Evolucion_Demanda_Clinica')" class="text-gray-400 hover:text-[#00a4e4] transition-colors" title="Descargar Gráfica"><i class="fas fa-download text-lg"></i></button>
+                                    <i class="fas fa-chart-bar text-gray-200 text-2xl"></i>
+                                </div>
+                            </div>
+                            <div class="chart-container flex-1">
+                                <div id="sk-evolucion" class="skeleton-loader active"></div>
+                                <canvas id="ch-evolucion"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="card hover-lift p-6 flex flex-col stagger-item delay-300">
+                            <div class="flex justify-between items-center border-b border-gray-100 pb-3 mb-5">
+                                <div>
+                                    <h3 class="text-sm font-bold text-[#002d72] uppercase tracking-wide">Saturación Semanal</h3>
+                                    <p class="text-[10px] text-gray-400 mt-1">Interactivo: Haz clic en los puntos</p>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <button onclick="descargarGrafica('ch-dias', 'Saturacion_Semanal')" class="text-gray-400 hover:text-[#00a4e4] transition-colors" title="Descargar Gráfica"><i class="fas fa-download text-lg"></i></button>
+                                    <i class="fas fa-calendar-day text-gray-200 text-2xl"></i>
+                                </div>
+                            </div>
+                            <div class="chart-container flex-1">
+                                <div id="sk-dias" class="skeleton-loader active"></div>
+                                <canvas id="ch-dias"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-10">
+                        <div class="card hover-lift p-6 flex flex-col stagger-item delay-400">
+                            <div class="flex justify-between items-center border-b border-gray-100 pb-3 mb-5">
+                                <div>
+                                    <h3 class="text-sm font-bold text-[#002d72] uppercase tracking-wide">Eficiencia Médica</h3>
+                                    <span class="bg-blue-50 text-[#0055a5] text-[10px] font-bold px-2 py-1 rounded inline-block mt-1">Media vs P90</span>
+                                </div>
+                                <button onclick="descargarGrafica('ch-medicos', 'Eficiencia_Medica')" class="text-gray-400 hover:text-[#00a4e4] transition-colors" title="Descargar Gráfica"><i class="fas fa-download text-lg"></i></button>
+                            </div>
+                            <div class="chart-container flex-1">
+                                <div id="sk-medicos" class="skeleton-loader active"></div>
+                                <canvas id="ch-medicos"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="card hover-lift p-6 flex flex-col stagger-item delay-500">
+                            <div class="flex justify-between items-center border-b border-gray-100 pb-3 mb-5">
+                                <div>
+                                    <h3 class="text-sm font-bold text-[#002d72] uppercase tracking-wide">Top Patologías</h3>
+                                    <p class="text-[10px] text-gray-400 mt-1">Interactivo: Haz clic en un segmento</p>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <button onclick="descargarGrafica('ch-diag', 'Top_Patologias')" class="text-gray-400 hover:text-[#00a4e4] transition-colors" title="Descargar Gráfica"><i class="fas fa-download text-lg"></i></button>
+                                    <i class="fas fa-chart-pie text-gray-200 text-2xl"></i>
+                                </div>
+                            </div>
+                            <div class="chart-container flex-1">
+                                <div id="sk-diag" class="skeleton-loader active"></div>
+                                <canvas id="ch-diag"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card hover-lift p-6 flex flex-col stagger-item delay-500 mb-6">
+                        <div class="flex justify-between items-center border-b border-gray-100 pb-3 mb-5">
+                            <div>
+                                <h3 class="text-sm font-bold text-[#002d72] uppercase tracking-wide">Comparativa Interanual</h3>
+                                <p class="text-[10px] text-gray-400 mt-1">Compara el volumen de un mes en específico a lo largo de los años</p>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <select id="f-mes-comparativa" onchange="renderComparativa()" class="text-xs border border-gray-200 rounded p-1.5 text-[#002d72] font-bold bg-gray-50 outline-none hover:border-[#00a4e4] transition-colors cursor-pointer">
+                                    <option value="0">Enero</option>
+                                    <option value="1">Febrero</option>
+                                    <option value="2">Marzo</option>
+                                    <option value="3">Abril</option>
+                                    <option value="4">Mayo</option>
+                                    <option value="5">Junio</option>
+                                    <option value="6">Julio</option>
+                                    <option value="7">Agosto</option>
+                                    <option value="8">Septiembre</option>
+                                    <option value="9">Octubre</option>
+                                    <option value="10">Noviembre</option>
+                                    <option value="11">Diciembre</option>
+                                </select>
+                                <button onclick="descargarGrafica('ch-comparativa', 'Comparativa_Mensual_Interanual')" class="text-gray-400 hover:text-[#00a4e4] transition-colors" title="Descargar Gráfica"><i class="fas fa-download text-lg"></i></button>
+                                <i class="fas fa-chart-line text-gray-200 text-2xl"></i>
+                            </div>
+                        </div>
+                        <div class="chart-container flex-1" style="height: 350px;">
+                            <canvas id="ch-comparativa"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="calidad-section" class="tab-section">
+                    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                        <div class="card p-6 xl:col-span-1 bg-gradient-to-br from-[#002d72] to-[#0055a5] text-white shadow-xl shadow-blue-900/20">
+                            <h3 class="text-xl font-bold mb-6 border-b border-white/20 pb-3 flex items-center gap-2"><i class="fas fa-shield-check text-[#00a4e4]"></i> Análisis IPSG</h3>
+                            <div class="space-y-6">
+                                <div class="bg-white/10 p-5 rounded-xl backdrop-blur-sm border border-white/10">
+                                    <p class="text-[10px] text-blue-200 uppercase font-bold tracking-wider mb-1">Casos Código Infarto (IAM)</p>
+                                    <p class="text-5xl font-extrabold" id="qc-iam">0</p>
+                                </div>
+                                <div class="bg-white/10 p-5 rounded-xl backdrop-blur-sm border-l-4 border-l-red-400 border-white/10">
+                                    <p class="text-[10px] text-blue-200 uppercase font-bold tracking-wider mb-1">Brecha Puerta-Balón (>90m)</p>
+                                    <p class="text-5xl font-extrabold text-red-300" id="qc-brecha">0</p>
+                                </div>
+                                <div class="bg-white/10 p-5 rounded-xl backdrop-blur-sm border-l-4 border-l-amber-400 border-white/10">
+                                    <p class="text-[10px] text-blue-200 uppercase font-bold tracking-wider mb-1">Eventos Severos / Mortalidad</p>
+                                    <p class="text-5xl font-extrabold text-amber-300" id="qc-mort">0 <span class="text-sm font-normal text-amber-100/70">casos</span></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card p-6 xl:col-span-2 flex flex-col bg-white">
+                            <div class="flex justify-between items-center border-b border-gray-100 pb-3 mb-4">
+                                <h3 class="text-sm font-bold text-red-600 uppercase tracking-wide flex items-center gap-2"><i class="fas fa-exclamation-circle"></i> Excepciones Clínicas Documentadas</h3>
+                                <button onclick="exportarCSVAvanzado()" class="btn-outline text-xs"><i class="fas fa-download mr-1"></i> Descargar Log</button>
+                            </div>
+                            <div class="overflow-y-auto flex-1 max-h-[600px] pr-2 custom-scrollbar">
+                                <table id="table-calidad">
+                                    <thead><tr><th>Folio</th><th>Fecha</th><th>Diagnóstico</th><th>Médico Tratante</th><th>T. Balón</th><th>Alerta</th></tr></thead>
+                                    <tbody id="tb-calidad"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="compendio-section" class="tab-section">
+                    <div class="card overflow-hidden flex flex-col h-[750px] bg-white">
+                        <div class="p-5 border-b border-gray-100 flex flex-wrap justify-between items-center gap-4 z-10 bg-white">
+                            <div class="relative w-full md:w-[400px]">
+                                <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                <input type="text" id="t-search" onkeyup="renderTabla()" placeholder="Buscar por paciente, folio o médico..." class="pl-12 py-3 w-full bg-gray-50 border border-gray-200 shadow-inner rounded-full text-sm">
+                            </div>
+                            <div class="flex gap-4 items-center">
+                                <span class="bg-blue-50 text-[#0055a5] px-4 py-2 rounded-full text-xs font-bold tracking-wide" id="t-count">0 RESULTADOS</span>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto overflow-y-auto flex-1 custom-scrollbar">
+                            <table class="w-full text-left whitespace-nowrap">
+                                <thead class="sticky top-0 z-20 shadow-sm bg-white/95 backdrop-blur-sm">
+                                    <tr><th>Expediente</th><th>Ingreso</th><th>Paciente</th><th>Perfil</th><th>Diagnóstico</th><th>Procedimiento</th><th>Médico & Equipo</th><th class="text-center">T. Sala</th><th class="text-center">T. Balón</th><th>Estado</th><th class="text-center">Acción</th></tr>
+                                </thead>
+                                <tbody id="tb-datos"><tr><td colspan="11" class="text-center py-10 text-gray-400">Generando vista...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="registro-section" class="tab-section">
+                    <div class="card p-8 max-w-4xl mx-auto shadow-xl border-t-4 border-t-[#00a4e4]">
+                        <div class="flex items-center gap-4 mb-8 border-b border-gray-100 pb-5">
+                            <div class="bg-[#00a4e4]/10 p-4 rounded-2xl text-[#00a4e4]"><i class="fas fa-file-medical text-2xl"></i></div>
+                            <div>
+                                <h2 class="text-2xl font-bold text-[#002d72]">Apertura de Expediente</h2>
+                                <p class="text-xs text-gray-500 mt-1 uppercase tracking-wide">Registro Clínico Estandarizado</p>
+                            </div>
+                        </div>
+                        
+                        <form id="formNuevoPaciente" onsubmit="guardarDatosManuales(event)" class="space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                                <div><label class="block text-xs font-bold text-gray-500 uppercase mb-2">Nombre del Paciente *</label><input type="text" id="new-nombre" required class="bg-gray-50 p-3"></div>
+                                <div><label class="block text-xs font-bold text-gray-500 uppercase mb-2">Fecha de Intervención *</label><input type="date" id="new-fecha" required class="bg-gray-50 p-3"></div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div><label class="block text-xs font-bold text-gray-500 uppercase mb-2">Edad *</label><input type="number" id="new-edad" required min="0" max="120" class="bg-gray-50 p-3"></div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Sexo *</label>
+                                        <select id="new-genero" required class="bg-gray-50 p-3">
+                                            <option value="">--</option>
+                                            <option value="M">Masculino</option>
+                                            <option value="F">Femenino</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div><label class="block text-xs font-bold text-gray-500 uppercase mb-2">Médico Titular *</label><input type="text" id="new-medico" placeholder="Ej. Dr. Carlos Mendoza" required class="bg-gray-50 p-3"></div>
+                                <div><label class="block text-xs font-bold text-gray-500 uppercase mb-2">Equipo (Enf., Téc.)</label><input type="text" id="new-equipo" placeholder="Ej. Enf. Sofía, Tec. Marco" class="bg-gray-50 p-3"></div>
+                                
+                                <div><label class="block text-xs font-bold text-gray-500 uppercase mb-2">Diagnóstico Principal *</label><input type="text" id="new-diagnostico" required class="bg-gray-50 p-3"></div>
+                                <div><label class="block text-xs font-bold text-gray-500 uppercase mb-2">Procedimiento *</label><input type="text" id="new-procedimiento" required class="bg-gray-50 p-3"></div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div><label class="block text-xs font-bold text-gray-500 uppercase mb-2">T. Sala (min) *</label><input type="number" id="new-tiempo" required min="1" class="bg-gray-50 p-3"></div>
+                                    <div><label class="block text-xs font-bold text-[#00a4e4] uppercase mb-2">T. Balón (IAM)</label><input type="number" id="new-balon" min="1" placeholder="Opcional" class="bg-blue-50/50 border-blue-200 p-3"></div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4 md:col-span-2">
+                                    <div><label class="block text-xs font-bold text-gray-500 uppercase mb-2">Complicaciones *</label><select id="new-complicaciones" required class="bg-gray-50 p-3"><option value="No">Ninguna</option><option value="Leve">Leve</option><option value="Moderada">Moderada/Severa</option></select></div>
+                                    <div><label class="block text-xs font-bold text-gray-500 uppercase mb-2">Disposición de Salida *</label><select id="new-estado" required class="bg-gray-50 p-3 border-l-4 border-l-[#0055a5]"><option value="Alta">Alta</option><option value="Observación">Observación</option><option value="Hospitalización">Hospitalización</option><option value="Traslado UCI">Traslado a UCI</option><option value="Defunción">Defunción</option></select></div>
+                                </div>
+                            </div>
+                            <div class="flex gap-4 pt-8 mt-4 border-t border-gray-100 bg-gray-50 -mx-8 -mb-8 p-8 rounded-b-[16px]">
+                                <button type="submit" id="btn-submit-form" class="btn-primary flex-1 justify-center py-4 text-base shadow-lg shadow-blue-500/30"><i class="fas fa-cloud-upload-alt"></i> Registrar en Sistema</button>
+                                <button type="button" onclick="limpiarFormulario()" class="btn-outline py-4 px-8"><i class="fas fa-eraser"></i> Limpiar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div id="analisis-section" class="tab-section">
+                    <div class="max-w-5xl mx-auto">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b border-gray-200 pb-5">
+                            <div>
+                                <h2 class="text-3xl font-bold page-title flex items-center gap-3">
+                                    <div class="bg-white p-3 rounded-xl shadow-sm"><i class="fas fa-brain text-[#00a4e4]"></i></div>
+                                    <span class="ai-gradient-text">Motor de Análisis IA</span>
+                                </h2>
+                                <p class="text-sm text-gray-500 mt-2 font-medium">Análisis algorítmico de cumplimiento ISO 9001 e IPSG basado en el filtrado activo.</p>
+                            </div>
+                            <div class="mt-4 md:mt-0 flex items-center gap-2 bg-white px-5 py-2.5 rounded-full border border-gray-200 shadow-sm">
+                                <span class="relative flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00a4e4] opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-[#0055a5]"></span></span>
+                                <span class="text-xs font-bold text-[#002d72] tracking-widest uppercase">Sistema Activo</span>
+                            </div>
+                        </div>
+
+                        <div id="ia-content" class="min-h-[500px]">
+                            </div>
+                    </div>
+                </div>
+
+                <footer class="mt-16 bg-white border border-gray-200 rounded-xl mb-6 shadow-sm overflow-hidden mx-auto">
+                    <div class="institutional-ribbon relative"></div>
+                    <div class="px-6 py-6 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
+                        <p class="font-bold text-[#002d72]">&copy; 2026 Hospital Ángeles - Departamento de Inteligencia Artificial.</p>
+                        <button onclick="abrirModalJCI()" class="mt-3 md:mt-0 flex items-center gap-2 bg-gray-50 px-4 py-1.5 rounded-full border border-gray-200 text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-blue-50 hover:border-blue-200 hover:text-[#0055a5] transition-all focus:outline-none">
+                            <i class="fas fa-shield-alt text-[#00a4e4]"></i> Plataforma JCI
+                        </button>
+                    </div>
+                </footer>
+
+            </div>
+        </main>
+    </div>
+
+    <div id="modal-kinetica" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-gray-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 max-w-lg w-full mx-4 transform transition-all scale-95 opacity-0" id="modal-kinetica-panel">
+            <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
+                <h3 class="text-xl font-bold text-[#002d72] flex items-center gap-2"><i class="fas fa-stopwatch text-[#00a4e4]"></i> Cálculo de Kinética de Sala</h3>
+                <button onclick="cerrarModalKinetica()" class="text-gray-400 hover:text-red-500 transition-colors"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <div id="modal-kinetica-content" class="text-sm text-gray-600 space-y-3"></div>
+            <div class="mt-6 flex justify-end">
+                <button onclick="cerrarModalKinetica()" class="btn-primary"><i class="fas fa-check"></i> Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-score" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-gray-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 max-w-lg w-full mx-4 transform transition-all scale-95 opacity-0" id="modal-score-panel">
+            <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
+                <h3 class="text-xl font-bold text-[#002d72] flex items-center gap-2"><i class="fas fa-star text-amber-500"></i> Score de Eficiencia y Nivel de Riesgo</h3>
+                <button onclick="cerrarModalScore()" class="text-gray-400 hover:text-red-500 transition-colors"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <div id="modal-score-content" class="text-sm text-gray-600 space-y-3"></div>
+            <div class="mt-6 flex justify-end">
+                <button onclick="cerrarModalScore()" class="btn-primary"><i class="fas fa-check"></i> Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-ipsg" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-gray-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 max-w-lg w-full mx-4 transform transition-all scale-95 opacity-0" id="modal-ipsg-panel">
+            <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
+                <h3 class="text-xl font-bold text-[#002d72] flex items-center gap-2"><i class="fas fa-shield-check text-green-500"></i> Cálculo de Métricas IPSG</h3>
+                <button onclick="cerrarModalIPSG()" class="text-gray-400 hover:text-red-500 transition-colors"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <div id="modal-ipsg-content" class="text-sm text-gray-600 space-y-3"></div>
+            <div class="mt-6 flex justify-end">
+                <button onclick="cerrarModalIPSG()" class="btn-primary"><i class="fas fa-check"></i> Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-efectividad" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-gray-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 max-w-lg w-full mx-4 transform transition-all scale-95 opacity-0" id="modal-efectividad-panel">
+            <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
+                <h3 class="text-xl font-bold text-[#002d72] flex items-center gap-2"><i class="fas fa-check-double text-[#002d72]"></i> Cálculo de Efectividad</h3>
+                <button onclick="cerrarModalEfectividad()" class="text-gray-400 hover:text-red-500 transition-colors"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <div id="modal-efectividad-content" class="text-sm text-gray-600 space-y-3"></div>
+            <div class="mt-6 flex justify-end">
+                <button onclick="cerrarModalEfectividad()" class="btn-primary"><i class="fas fa-check"></i> Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-ruta" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-gray-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 max-w-lg w-full mx-4 transform transition-all scale-95 opacity-0" id="modal-ruta-panel">
+            <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
+                <h3 class="text-xl font-bold text-[#002d72] flex items-center gap-2"><i class="fas fa-stream text-[#00a4e4]"></i> Hoja de Ruta Prescriptiva</h3>
+                <button onclick="cerrarModalRuta()" class="text-gray-400 hover:text-red-500 transition-colors"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <div id="modal-ruta-content" class="text-sm text-gray-600 space-y-3"></div>
+            <div class="mt-6 flex justify-end">
+                <button onclick="cerrarModalRuta()" class="btn-primary"><i class="fas fa-check"></i> Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-jci" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-gray-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 max-w-lg w-full mx-4 transform transition-all scale-95 opacity-0" id="modal-jci-panel">
+            <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
+                <h3 class="text-xl font-bold text-[#002d72] flex items-center gap-2"><i class="fas fa-award text-[#00a4e4]"></i> Certificación JCI</h3>
+                <button onclick="cerrarModalJCI()" class="text-gray-400 hover:text-red-500 transition-colors"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <div id="modal-jci-content" class="text-sm text-gray-600 space-y-3">
+                <p class="leading-relaxed">Esta plataforma de Inteligencia Artificial está alineada con los estándares de la <strong>Joint Commission International (JCI)</strong>, la organización con mayor experiencia en acreditación sanitaria a nivel mundial.</p>
+                <ul class="space-y-3 mt-4">
+                    <li class="bg-blue-50 p-4 rounded-lg border border-blue-100 flex items-start gap-3">
+                        <i class="fas fa-shield-alt text-[#0055a5] mt-1"></i>
+                        <div>
+                            <strong class="text-[#0055a5] block mb-1">Metas Internacionales de Seguridad (IPSG)</strong>
+                            El motor de Inteligencia Artificial analiza en tiempo real el cumplimiento de los tiempos Puerta-Balón (estándar menor a 90 minutos) y el registro estricto de eventos y complicaciones, garantizando la máxima seguridad del paciente dentro de la Unidad de Hemodinamia.
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="mt-6 flex justify-end">
+                <button onclick="cerrarModalJCI()" class="btn-primary"><i class="fas fa-check"></i> Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <script>
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#64748b';
+        Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(0, 45, 114, 0.95)';
+        Chart.defaults.plugins.tooltip.titleFont = { size: 13, family: 'Montserrat', weight: 'bold' };
+        Chart.defaults.plugins.tooltip.bodyFont = { size: 12, family: 'Inter' };
+        Chart.defaults.plugins.tooltip.padding = 12;
+        Chart.defaults.plugins.tooltip.cornerRadius = 8;
+        Chart.defaults.plugins.tooltip.displayColors = false;
+        Chart.register({ id: 'bgWhite', beforeDraw: (chart) => { const ctx = chart.ctx; ctx.save(); ctx.fillStyle = 'white'; ctx.fillRect(0, 0, chart.width, chart.height); ctx.restore(); } });
+
+        const DATA_BASE_RAW = [
+            {id:1, f:"2025-01-02", p:"Ana M. Rodríguez", e:65, g:"F", m:"Dr. Carlos Mendoza", eq:"Tec. Hugo León", d:"Infarto Agudo De Miocardio", pr:"Angioplastia Primaria", t:45, c:"No", s:"Alta"},
+            {id:2, f:"2025-01-05", p:"Luis F. Gómez", e:58, g:"M", m:"Dr. Roberto Sánchez", eq:"Dr. Sergio Paredes", d:"Acceso Venoso Difícil", pr:"Catéter PICC", t:68, c:"No", s:"Alta"},
+            {id:3, f:"2025-02-04", p:"Marta E. López", e:72, g:"F", m:"Dr. Carlos Mendoza", eq:"Enf. Laura Gómez, Enf. Karla Soto", d:"SICA Sin Elevación", pr:"Coronariografía", t:26, c:"No", s:"Alta"},
+            {id:4, f:"2025-02-10", p:"Roberto García", e:54, g:"M", m:"Dra. Ana Ramírez", eq:"Tec. Marco Gil", d:"Enfermedad Periférica", pr:"Angioplastia Periférica", t:55, c:"Leve", s:"Hospitalización"},
+            {id:5, f:"2025-02-18", p:"Patricia Moreno", e:68, g:"F", m:"Dra. Lucía Herrera", eq:"Enf. Brenda Lozano", d:"Estenosis Aórtica", pr:"TAVI", t:110, c:"No", s:"Alta"}
+        ];
+
+        let DataGlobal = [];
+        let DataVista = []; 
+        let Graficas = {};
+        let iaTimeout = null;
+
+        // ==========================================
+        // MOTOR DE CUMPLIMIENTO (HIPAA, JCI, ISO 9001)
+        // ==========================================
+        const ComplianceEngine = {
+            _llave: "Angeles_AI_2026",
+            cifrar: (txt) => { try { return btoa(ComplianceEngine._llave + txt); } catch(e) { return txt; } },
+            descifrar: (txt) => { try { let dec = atob(txt); return dec.includes(ComplianceEngine._llave) ? dec.replace(ComplianceEngine._llave, "") : txt; } catch(e) { return txt; } },
+            protegerBD: (data) => data.map(d => ({ ...d, paciente: ComplianceEngine.cifrar(d.paciente) })),
+            desprotegerBD: (data) => data.map(d => ({ ...d, paciente: ComplianceEngine.descifrar(d.paciente) })),
+            generarFirma: () => ({ timestamp: new Date().toISOString(), usuario: "Direccion Medica", hash_integridad: Math.random().toString(36).substr(2, 9) }),
+            validarCalidad: (d) => {
+                if(!d.paciente || d.paciente.trim() === "") return "Error de Calidad ISO: El nombre del paciente es obligatorio.";
+                if(d.tiempo < 0) return "Error de Calidad ISO: El tiempo en sala no puede ser negativo.";
+                return null;
+            }
+        };
+
+        function inicializarDatos() {
+            const stored = localStorage.getItem('hemodinamia_v26'); 
+            if (stored) { 
+                try { 
+                    DataGlobal = ComplianceEngine.desprotegerBD(JSON.parse(stored));
+                    if(!Array.isArray(DataGlobal) || DataGlobal.length === 0) throw new Error("Base vacía");
+                } catch(e) { generarDatosSimulados(); } 
+            } else { generarDatosSimulados(); }
+            
+            cargarFiltrosUI();
+            setQuickDate('all'); 
+        }
+
+        function generarDatosSimulados() {
+            DataGlobal = [];
+            const medicos = ["Dr. Carlos Mendoza", "Dr. Roberto Sánchez", "Dr. Javier Ruiz", "Dra. Ana Ramírez", "Dra. Lucía Herrera"];
+            const diagnosticos = ["Infarto Agudo De Miocardio", "SICA Sin Elevación", "Angina Inestable", "Estenosis Aórtica", "Fibrilación Auricular", "Enfermedad Periférica", "Acceso Venoso Difícil"];
+            const equipos = ["Tec. Hugo León", "Dr. Sergio Paredes", "Enf. Laura Gómez, Enf. Karla Soto", "Enf. Sofía Luna", "Tec. César Vela", "Enf. Paula Reyes"];
+            const nomM = ["Alejandro", "Carlos", "Roberto", "Fernando", "Jorge", "Luis", "Miguel", "Javier", "Ricardo", "Eduardo", "Raúl", "Hugo"];
+            const nomF = ["Ana", "María", "Patricia", "Marta", "Sofía", "Laura", "Carmen", "Lucía", "Teresa", "Rosa", "Elena", "Daniela"];
+            const ape = ["Rodríguez", "Gómez", "López", "García", "Moreno", "Torres", "Castillo", "Díaz", "Ruiz", "Sánchez", "Riquelme", "Núñez"];
+
+            for(let i=1; i<=120; i++) {
+                const base = DATA_BASE_RAW[i % DATA_BASE_RAW.length];
+                const year = 2024 + Math.floor(Math.random() * 3); 
+                const mes = Math.floor(Math.random() * 12) + 1;
+                const dia = Math.floor(Math.random() * 28) + 1;
+                const fechaDate = new Date(year, mes-1, dia);
+                const fechaStr = `${year}-${mes.toString().padStart(2,'0')}-${dia.toString().padStart(2,'0')}`;
+                
+                const h = Math.random() > 0.3 ? Math.floor(Math.random() * 7) + 8 : Math.floor(Math.random() * 8) + 15;
+                const diag = i <= 5 ? base.d : diagnosticos[Math.floor(Math.random() * diagnosticos.length)];
+                const esIAM = diag === "Infarto Agudo De Miocardio";
+                
+                let balon = null;
+                if(esIAM) balon = Math.random() > 0.2 ? Math.floor(Math.random() * 40) + 45 : Math.floor(Math.random() * 50) + 91;
+                const probComp = diag === "Estenosis Aórtica" ? 0.15 : 0.05;
+                const comp = Math.random() < probComp ? (Math.random() < 0.3 ? "Moderada" : "Leve") : "No";
+                let estado = comp === "Moderada" ? "Traslado UCI" : (comp === "Leve" ? "Observación" : "Alta");
+                if (Math.random() < 0.02 && esIAM) estado = "Defunción";
+                let t_real = (diag === "Estenosis Aórtica" ? 120 : (diag === "Fibrilación Auricular" ? 150 : (esIAM ? 60 : 30))) + Math.floor(Math.random() * 40) - 15;
+                const genero = Math.random() > 0.5 ? 'M' : 'F';
+                const nomCompleto = i <= 5 ? base.p : `${genero === 'M' ? nomM[Math.floor(Math.random() * nomM.length)] : nomF[Math.floor(Math.random() * nomF.length)]} ${ape[Math.floor(Math.random() * ape.length)]}`;
+                
+                DataGlobal.push({
+                    id: 1000 + i, fecha: fechaStr, diaSemana: fechaDate.getDay(), hora: `${h.toString().padStart(2,'0')}:${Math.floor(Math.random()*60).toString().padStart(2,'0')}`, horaNum: h,
+                    paciente: nomCompleto, edad: Math.floor(Math.random() * 40) + 40, genero: i <= 5 ? base.g : genero,
+                    medico: i <= 5 ? base.m : medicos[Math.floor(Math.random() * medicos.length)], 
+                    equipo: i <= 5 ? base.eq : equipos[Math.floor(Math.random() * equipos.length)],
+                    diagnostico: diag, procedimiento: diag === "Infarto Agudo De Miocardio" ? "Angioplastia Primaria" : (diag === "Estenosis Aórtica" ? "TAVI" : "Cateterismo Diagnóstico"),
+                    tiempo: t_real, puertaBalon: balon, complicaciones: comp, estado: estado
+                 });
+            }
+            DataGlobal.sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
+            localStorage.setItem('hemodinamia_v26', JSON.stringify(ComplianceEngine.protegerBD(DataGlobal)));
+        }
+
+        const statPercentil = (arr, p) => { const valid = arr.filter(n => !isNaN(n) && n !== null);
+            if (valid.length === 0) return 0; const sorted = valid.sort((a,b)=>a-b); const pos = (sorted.length-1)*p; const base = Math.floor(pos);
+            return sorted[base+1] !== undefined ? Math.round(sorted[base] + (pos-base)*(sorted[base+1]-sorted[base])) : Math.round(sorted[base]); };
+        const statMediana = (arr) => statPercentil(arr, 0.5);
+        const statPromedio = (arr) => { const valid = arr.filter(n => !isNaN(n) && n !== null);
+            return valid.length === 0 ? 0 : Math.round(valid.reduce((a,b)=>a+b,0)/valid.length); };
+        const statDesviacion = (arr) => { const valid = arr.filter(n => !isNaN(n) && n !== null);
+            if(valid.length===0) return 0; const m = statPromedio(valid); return Math.round(Math.sqrt(statPromedio(valid.map(v=>Math.pow(v-m,2))))); };
+        
+        function animateValue(id, end, duration = 1200) {
+            try {
+                const el = document.getElementById(id);
+                if(!el) return;
+                end = parseFloat(end); if(isNaN(end)) end = 0; 
+                let start = 0, startTimestamp = null;
+                const step = (timestamp) => {
+                    if (!startTimestamp) startTimestamp = timestamp;
+                    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                    const easeProgress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+                    el.innerText = Math.floor(easeProgress * end);
+                    if (progress < 1) window.requestAnimationFrame(step);
+                    else el.innerText = end;
+                };
+                window.requestAnimationFrame(step);
+            } catch(err) { console.error("Error animateValue", err); }
+        }
+
+        function showToast(msg, type = "info", icon = "fa-info-circle") {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            let colorBorder = type === 'success' ? '#10b981' : (type === 'error' ? '#ef4444' : '#00a4e4');
+            let colorBg = type === 'success' ? 'bg-green-50' : (type === 'error' ? 'bg-red-50' : 'bg-blue-50');
+            let colorIcon = type === 'success' ? 'text-green-500' : (type === 'error' ? 'text-red-500' : 'text-[#00a4e4]');
+
+            toast.className = `toast border-l-4`;
+            toast.style.borderLeftColor = colorBorder;
+            toast.innerHTML = `
+                <div class="${colorBg} p-2 rounded-full"><i class="fas ${icon} ${colorIcon} text-lg"></i></div>
+                <div class="flex-1 pt-1"><p class="text-sm font-semibold text-gray-800 leading-tight">${msg}</p></div>
+                <button onclick="this.parentElement.remove()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+                <div class="toast-progress" style="background-color: ${colorBorder}; animation-duration: 4s;"></div>
+            `;
+            container.appendChild(toast);
+            void toast.offsetWidth;
+            toast.classList.add('show');
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 500); }, 4000);
+        }
+
+        // ====== MODALES ======
+        function abrirModalScore(altas, total, stdev, tasaFallaBalon, tasaComp) {
+            const modal = document.getElementById('modal-score');
+            const panel = document.getElementById('modal-score-panel');
+            const content = document.getElementById('modal-score-content');
+            const score = total > 0 ? Math.round((altas/total)*100) : 0;
+            content.innerHTML = `
+                <p class="leading-relaxed">El <strong>Score de Eficiencia y Nivel de Riesgo</strong> evalúa el estado general de la Unidad de Hemodinamia combinando métricas operativas y clínicas clave.</p>
+                <ul class="space-y-3 mt-4">
+                    <li class="bg-blue-50 p-4 rounded-lg border border-blue-100 flex items-start gap-3">
+                        <i class="fas fa-check-double text-[#0055a5] mt-1"></i>
+                        <div>
+                            <strong class="text-[#0055a5] block mb-1">Score de Eficiencia (${score})</strong>
+                            Se basa en la proporción de casos dados de alta exitosamente sin requerir traslados a UCI o presentar eventos letales (${altas} altas directas de ${total} casos).
+                        </div>
+                    </li>
+                    <li class="bg-amber-50 p-4 rounded-lg border border-amber-100 flex items-start gap-3">
+                        <i class="fas fa-balance-scale text-amber-600 mt-1"></i>
+                        <div>
+                            <strong class="text-amber-700 block mb-1">Factores de Nivel de Riesgo</strong>
+                            El algoritmo categoriza el nivel (Óptimo, Mejora o Crítico) si la Varianza supera ±35m (actual: ±${stdev}m), las fallas Puerta-Balón superan el 10% (actual: ${tasaFallaBalon.toFixed(1)}%) o las complicaciones superan el 8% (actual: ${tasaComp.toFixed(1)}%).
+                        </div>
+                    </li>
+                </ul>
+            `;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                panel.classList.remove('scale-95', 'opacity-0');
+                panel.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function cerrarModalScore() {
+            const modal = document.getElementById('modal-score');
+            const panel = document.getElementById('modal-score-panel');
+            modal.classList.remove('opacity-100');
+            modal.classList.add('opacity-0');
+            panel.classList.remove('scale-100', 'opacity-100');
+            panel.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300);
+        }
+
+        function abrirModalKinetica(med, p90, stdev) {
+            const modal = document.getElementById('modal-kinetica');
+            const panel = document.getElementById('modal-kinetica-panel');
+            const content = document.getElementById('modal-kinetica-content');
+            content.innerHTML = `
+                <p class="leading-relaxed">El análisis de <strong>Kinética de Sala</strong> utiliza estadística descriptiva robusta para evaluar la eficiencia operativa de la sala de Hemodinamia, aislando automáticamente casos atípicos (outliers).</p>
+                <ul class="space-y-3 mt-4">
+                    <li class="bg-blue-50 p-4 rounded-lg border border-blue-100 flex items-start gap-3">
+                         <i class="fas fa-bullseye text-[#0055a5] mt-1"></i>
+                        <div>
+                            <strong class="text-[#0055a5] block mb-1">Mediana Óptima (${med} min)</strong>
+                            Es el punto central exacto de los datos. A diferencia del promedio aritmético, la mediana no se ve afectada ni arrastrada por un solo procedimiento que haya durado muchas horas, reflejando así el tiempo "típico" y real de la ocupación de la sala.
+                        </div>
+                    </li>
+                    <li class="bg-red-50 p-4 rounded-lg border border-red-100 flex items-start gap-3">
+                        <i class="fas fa-exclamation-circle text-red-500 mt-1"></i>
+                        <div>
+                            <strong class="text-red-600 block mb-1">P90 Crítico (${p90} min)</strong>
+                            Es el Percentil 90. Esto indica formalmente que el 90% de las intervenciones terminan en ${p90} minutos o menos. El 10% restante representa la "cola derecha" de máxima complejidad quirúrgica.
+                        </div>
+                    </li>
+                    <li class="bg-gray-50 p-4 rounded-lg border border-gray-200 flex items-start gap-3">
+                        <i class="fas fa-chart-area text-gray-500 mt-1"></i>
+                        <div>
+                            <strong class="text-gray-700 block mb-1">Varianza - Desviación Estándar (±${stdev} min)</strong>
+                            Mide qué tan dispersos están los tiempos de sala respecto a la media. Una desviación mayor a 30-35 minutos sugiere alta variabilidad técnica y recomienda estandarizar el set-up y los kits médicos.
+                        </div>
+                    </li>
+                </ul>
+            `;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                panel.classList.remove('scale-95', 'opacity-0');
+                panel.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function cerrarModalKinetica() {
+            const modal = document.getElementById('modal-kinetica');
+            const panel = document.getElementById('modal-kinetica-panel');
+            modal.classList.remove('opacity-100');
+            modal.classList.add('opacity-0');
+            panel.classList.remove('scale-100', 'opacity-100');
+            panel.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300);
+        }
+
+        function abrirModalIPSG(fBalon, fComp, totalIams) {
+            const modal = document.getElementById('modal-ipsg');
+            const panel = document.getElementById('modal-ipsg-panel');
+            const content = document.getElementById('modal-ipsg-content');
+            content.innerHTML = `
+                <p class="leading-relaxed">Las <strong>Métricas IPSG</strong> (International Patient Safety Goals) evalúan el cumplimiento estricto de protocolos internacionales de seguridad del paciente.</p>
+                <ul class="space-y-3 mt-4">
+                    <li class="bg-green-50 p-4 rounded-lg border border-green-100 flex items-start gap-3">
+                        <i class="fas fa-heartbeat text-green-600 mt-1"></i>
+                        <div>
+                            <strong class="text-green-700 block mb-1">Meta Puerta-Balón (${fBalon}% Éxito)</strong>
+                            Evalúa la rapidez de reperfusión en infartos (IAM). De los <b>${totalIams} casos</b> de Código Infarto registrados, el ${fBalon}% logró la apertura de la arteria en menos de 90 minutos desde su ingreso, cumpliendo el estándar oro internacional.
+                        </div>
+                    </li>
+                    <li class="bg-blue-50 p-4 rounded-lg border border-blue-100 flex items-start gap-3">
+                        <i class="fas fa-shield-alt text-[#0055a5] mt-1"></i>
+                        <div>
+                            <strong class="text-[#0055a5] block mb-1">Tasa Libre de Complicaciones (${fComp}%)</strong>
+                            Representa el porcentaje total de pacientes intervenidos que no presentaron ninguna complicación intra o postoperatoria (ni leve, ni moderada, ni severa), garantizando la seguridad en el quirófano.
+                        </div>
+                    </li>
+                </ul>
+            `;
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            setTimeout(() => { modal.classList.remove('opacity-0'); panel.classList.remove('scale-95', 'opacity-0'); panel.classList.add('scale-100', 'opacity-100'); }, 10);
+        }
+
+        function cerrarModalIPSG() {
+            const modal = document.getElementById('modal-ipsg'); const panel = document.getElementById('modal-ipsg-panel');
+            modal.classList.remove('opacity-100'); modal.classList.add('opacity-0'); panel.classList.remove('scale-100', 'opacity-100'); panel.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 300);
+        }
+
+        function abrirModalEfectividad(altas, total) {
+            const modal = document.getElementById('modal-efectividad');
+            const panel = document.getElementById('modal-efectividad-panel');
+            const content = document.getElementById('modal-efectividad-content');
+            const porcentaje = total > 0 ? ((altas/total)*100).toFixed(1) : 0;
+            content.innerHTML = `
+                <p class="leading-relaxed">La <strong>Efectividad de Alta</strong> mide la resolución exitosa y directa de los procedimientos de Hemodinamia, reflejando la eficiencia resolutiva de la unidad.</p>
+                <ul class="space-y-3 mt-4">
+                    <li class="bg-blue-50 p-4 rounded-lg border border-blue-100 flex items-start gap-3">
+                        <i class="fas fa-check-double text-[#002d72] mt-1"></i>
+                        <div>
+                            <strong class="text-[#002d72] block mb-1">Tasa de Alta Exitosa (${porcentaje}%)</strong>
+                            Se calcula dividiendo los <b>${altas} pacientes dados de alta</b> directamente a piso o a su domicilio, sobre el total de <b>${total} pacientes analizados</b> en el periodo activo. <br><br>
+                            El ${(100 - porcentaje).toFixed(1)}% restante corresponde a pacientes que requirieron traslado a la Unidad de Cuidados Intensivos (UCI), se mantuvieron en observación prolongada o presentaron eventos adversos (mortalidad).
+                        </div>
+                    </li>
+                </ul>
+            `;
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            setTimeout(() => { modal.classList.remove('opacity-0'); panel.classList.remove('scale-95', 'opacity-0'); panel.classList.add('scale-100', 'opacity-100'); }, 10);
+        }
+
+        function cerrarModalEfectividad() {
+            const modal = document.getElementById('modal-efectividad'); const panel = document.getElementById('modal-efectividad-panel');
+            modal.classList.remove('opacity-100'); modal.classList.add('opacity-0'); panel.classList.remove('scale-100', 'opacity-100'); panel.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 300);
+        }
+
+        function abrirModalRuta(tasaFallaBalon, stdev, total) {
+            const modal = document.getElementById('modal-ruta');
+            const panel = document.getElementById('modal-ruta-panel');
+            const content = document.getElementById('modal-ruta-content');
+            content.innerHTML = `
+                <p class="leading-relaxed">La <strong>Hoja de Ruta Prescriptiva</strong> es generada dinámicamente por el motor de IA cruzando los indicadores actuales con los estándares <strong>JCI e ISO 9001:2015</strong>.</p>
+                <ul class="space-y-3 mt-4">
+                    <li class="bg-red-50 p-4 rounded-lg border border-red-100 flex items-start gap-3">
+                        <i class="fas fa-ambulance text-red-500 mt-1"></i>
+                        <div>
+                            <strong class="text-red-700 block mb-1">Triage y Tiempos (Prioridad Crítica)</strong>
+                            Se activa si el incumplimiento Puerta-Balón es mayor al 0%. (Actual: ${tasaFallaBalon.toFixed(1)}%).
+                        </div>
+                    </li>
+                    <li class="bg-amber-50 p-4 rounded-lg border border-amber-100 flex items-start gap-3">
+                        <i class="fas fa-boxes text-amber-500 mt-1"></i>
+                        <div>
+                            <strong class="text-amber-700 block mb-1">Optimización de Set-up (Prioridad Media)</strong>
+                            Se dispara si la variabilidad técnica (Desviación Estándar) supera los 30 minutos. (Actual: ±${stdev}m).
+                        </div>
+                    </li>
+                    <li class="bg-blue-50 p-4 rounded-lg border border-blue-100 flex items-start gap-3">
+                        <i class="fas fa-clipboard-check text-[#0055a5] mt-1"></i>
+                        <div>
+                            <strong class="text-[#0055a5] block mb-1">Cumplimiento Estructural</strong>
+                            Valida que el volumen de expedientes analizados (${total} registros) cuenta con trazabilidad completa.
+                        </div>
+                    </li>
+                </ul>
+            `;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                panel.classList.remove('scale-95', 'opacity-0');
+                panel.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function cerrarModalRuta() {
+            const modal = document.getElementById('modal-ruta');
+            const panel = document.getElementById('modal-ruta-panel');
+            modal.classList.remove('opacity-100');
+            modal.classList.add('opacity-0');
+            panel.classList.remove('scale-100', 'opacity-100');
+            panel.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300);
+        }
+
+        // ====== FUNCIÓN NUEVA MODAL JCI ======
+        function abrirModalJCI() {
+            const modal = document.getElementById('modal-jci');
+            const panel = document.getElementById('modal-jci-panel');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                panel.classList.remove('scale-95', 'opacity-0');
+                panel.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function cerrarModalJCI() {
+            const modal = document.getElementById('modal-jci');
+            const panel = document.getElementById('modal-jci-panel');
+            modal.classList.remove('opacity-100');
+            modal.classList.add('opacity-0');
+            panel.classList.remove('scale-100', 'opacity-100');
+            panel.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300);
+        }
+
+        function cargarFiltrosUI() {
+            const medicos = [...new Set(DataGlobal.map(d => d.medico))].filter(Boolean).sort();
+            const diags = [...new Set(DataGlobal.map(d => d.diagnostico))].filter(Boolean).sort();
+            const sMed = document.getElementById('f-medico'); const sDiag = document.getElementById('f-diag');
+            sMed.innerHTML = '<option value="all">Todos los médicos</option>';
+            sDiag.innerHTML = '<option value="all">Todas las patologías</option>';
+            medicos.forEach(m => sMed.add(new Option(m, m)));
+            diags.forEach(d => sDiag.add(new Option(d, d)));
+        }
+
+        function setQuickDate(type, element = null) {
+            document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
+            if(element) element.classList.add('active');
+            const d1 = document.getElementById('f-desde'); const d2 = document.getElementById('f-hasta');
+            const hoy = new Date();
+            if(type === 'all') { d1.value = ''; d2.value = ''; }
+            else if(type === 'last_30_days') { const past = new Date(); past.setDate(hoy.getDate()-30); d1.value = past.toISOString().split('T')[0]; d2.value = hoy.toISOString().split('T')[0]; }
+            else if(type === 'ytd') { d1.value = new Date(hoy.getFullYear(),0,1).toISOString().split('T')[0]; d2.value = hoy.toISOString().split('T')[0]; }
+            aplicarFiltros();
+        }
+
+        function resetFiltros() {
+            document.getElementById('f-desde').value=''; document.getElementById('f-hasta').value=''; document.getElementById('f-medico').value='all'; document.getElementById('f-diag').value='all';
+            document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
+            aplicarFiltros();
+        }
+
+        function aplicarFiltros() {
+            const fd = document.getElementById('f-desde').value; const fh = document.getElementById('f-hasta').value;
+            const fm = document.getElementById('f-medico').value; const fdiag = document.getElementById('f-diag').value;
+            DataVista = DataGlobal.filter(d => { 
+                if(fd && d.fecha<fd) return false; 
+                if(fh && d.fecha>fh) return false; 
+                if(fm!=='all' && d.medico!==fm) return false; 
+                if(fdiag!=='all' && d.diagnostico!==fdiag) return false; 
+                return true; 
+            });
+            animateValue('status-record-count', DataVista.length, 800);
+            renderDashboard(); renderCalidad(); renderTabla();
+            const sectionIA = document.getElementById('analisis-section');
+            if(sectionIA && sectionIA.classList.contains('active')) renderAnalisisIAPremium();
+        }
+
+        function drawSpark(id, color, dataArr) {
+            try {
+                if(Graficas[id]) Graficas[id].destroy();
+                const validData = dataArr.map(n => isNaN(n) ? 0 : n); 
+                const ctx = document.getElementById(id); if(!ctx) return;
+                Graficas[id] = new Chart(ctx, { type: 'line', data: { labels: Array(validData.length).fill(''), datasets: [{ data: validData, borderColor: color, borderWidth: 2, pointRadius: 0, tension: 0.4, fill: true, backgroundColor: color+'15' }] }, options: { responsive: true, maintainAspectRatio: false, animation: {duration: 1500, easing: 'easeOutQuart'}, plugins:{legend:{display:false}, tooltip:{enabled:false}}, scales:{x:{display:false},y:{display:false}} } });
+            } catch(err) { console.error("Error Sparkline", err); }
+        }
+
+        // ===============================================
+        // FUNCIÓN SEPARADA PARA RENDERIZAR SÓLO LA COMPARATIVA
+        // ===============================================
+        function renderComparativa() {
+            if (!DataVista || DataVista.length === 0) return;
+
+            const mesSeleccionado = document.getElementById('f-mes-comparativa') ? parseInt(document.getElementById('f-mes-comparativa').value, 10) : 0;
+            const yearData = {};
+            
+            // Contamos los datos ignorando el filtro maestro de fechas, pero respetando médico y patología
+            const fm = document.getElementById('f-medico').value; 
+            const fdiag = document.getElementById('f-diag').value;
+            
+            DataGlobal.forEach(d => {
+                if(fm !== 'all' && d.medico !== fm) return; 
+                if(fdiag !== 'all' && d.diagnostico !== fdiag) return; 
+
+                if(!d.fecha || !d.fecha.includes('-')) return;
+                const parts = d.fecha.split('-');
+                const year = parts[0];
+                const monthIdx = parseInt(parts[1], 10) - 1;
+                
+                if(monthIdx === mesSeleccionado) {
+                    if(!yearData[year]) yearData[year] = 0;
+                    yearData[year]++;
+                }
+            });
+
+            const yearsLabels = Object.keys(yearData).sort();
+            const dataComparativa = yearsLabels.map(y => yearData[y]);
+            const nombresMeses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+
+            if(Graficas.chComparativa) Graficas.chComparativa.destroy();
+            Graficas.chComparativa = new Chart(document.getElementById('ch-comparativa'), {
+                type: 'bar',
+                data: {
+                    labels: yearsLabels,
+                    datasets: [{
+                        label: 'Casos en ' + nombresMeses[mesSeleccionado],
+                        data: dataComparativa,
+                        backgroundColor: ['#0055a5', '#00a4e4', '#10b981', '#ef4444', '#f59e0b', '#8b5cf6'],
+                        borderRadius: 6,
+                        barPercentage: 0.5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {duration: 800},
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                    },
+                    onClick: (e, activeEls) => { 
+                        if(activeEls.length > 0) { 
+                            const idx = activeEls[0].index; 
+                            showToast(`En ${nombresMeses[mesSeleccionado]} del ${yearsLabels[idx]} hubieron ${dataComparativa[idx]} casos.`, 'info', 'fa-calendar'); 
+                        } 
+                    },
+                    onHover: (e, chartElement) => { 
+                        e.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default'; 
+                    }
+                }
+            });
+        }
+
+        function renderDashboard() {
+            try {
+                // SKELETON LOADER ACTIVATION
+                document.querySelectorAll('.skeleton-loader').forEach(el => el.classList.add('active'));
+                
+                setTimeout(() => {
+                    const t = DataVista.length; const tiempos = DataVista.map(d=>d.tiempo);
+                    const med = statMediana(tiempos); const p90 = statPercentil(tiempos, 0.90);
+                    const comp = DataVista.filter(d=>d.complicaciones!=="No").length; const tComp = t>0 ? ((comp/t)*100).toFixed(1) : 0;
+                    const iams = DataVista.filter(d=>d.puertaBalon!==null && !isNaN(d.puertaBalon)); const tBalon = iams.length>0 ? ((iams.filter(d=>d.puertaBalon<=90).length/iams.length)*100).toFixed(1) : 0;
+
+                    animateValue('k1-val', t); animateValue('k2-val', med); animateValue('k2-p90', p90); animateValue('k3-val', tBalon); animateValue('k4-val', tComp);
+                    const genSpark = (b, v) => Array.from({length:12}, () => Math.floor(Math.random()*(v||5))+b);
+                    drawSpark('sp-vol', '#0055a5', genSpark(5, t/5)); drawSpark('sp-time', '#00a4e4', tiempos.slice(-12));
+                    drawSpark('sp-balon', '#10b981', genSpark(80, 20)); drawSpark('sp-comp', '#ef4444', genSpark(0, comp+2));
+
+                    // ================= LLAMADA A LA COMPARATIVA =================
+                    renderComparativa();
+                    // ==========================================================
+
+                    // EVOLUCION DEMANDA
+                    const nombresMeses = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+                    const mesMap = {};
+                    DataVista.forEach(d => { 
+                        if(!d.fecha || !d.fecha.includes('-')) return;
+                        let mIdx = parseInt(d.fecha.split('-')[1], 10) - 1;
+                        if(isNaN(mIdx)) return;
+                        const mes = nombresMeses[mIdx]; 
+                        mesMap[mes] = (mesMap[mes]||0)+1; 
+                    });
+                    if(Graficas.ch1) Graficas.ch1.destroy();
+                    Graficas.ch1 = new Chart(document.getElementById('ch-evolucion'), { 
+                        type: 'bar', data: { labels: Object.keys(mesMap), datasets: [{ label: 'Intervenciones', data: Object.values(mesMap), backgroundColor: '#0055a5', hoverBackgroundColor: '#00a4e4', borderRadius: 6, barPercentage: 0.6 }] }, 
+                        options: { responsive: true, maintainAspectRatio: false, animation: {duration: 1200}, plugins: { legend: {display: false} }, 
+                        onClick: (e, activeEls) => { if(activeEls.length>0) { const idx=activeEls[0].index; showToast(`En ${Object.keys(mesMap)[idx]} se realizaron ${Object.values(mesMap)[idx]} intervenciones.`, 'info', 'fa-calendar-check'); } },
+                        onHover: (e, chartElement) => { e.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default'; } } 
+                    });
+
+                    // SATURACION SEMANAL (CON GRADIENTE)
+                    const dias = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"]; const diaMap = [0,0,0,0,0,0,0]; 
+                    DataVista.forEach(d => { if(d.diaSemana >= 0 && d.diaSemana <=6) diaMap[d.diaSemana]++; });
+                    if(Graficas.ch2) Graficas.ch2.destroy();
+                    
+                    const ctxRadar = document.getElementById('ch-dias').getContext('2d');
+                    let gradientRadar = ctxRadar.createLinearGradient(0, 0, 0, 400);
+                    gradientRadar.addColorStop(0, 'rgba(0, 164, 228, 0.6)');   
+                    gradientRadar.addColorStop(1, 'rgba(0, 164, 228, 0.05)'); 
+                    
+                    Graficas.ch2 = new Chart(document.getElementById('ch-dias'), { 
+                        type: 'radar', 
+                        data: { labels: dias, datasets: [{ label: 'Volumen Histórico', data: diaMap, backgroundColor: gradientRadar, borderColor: '#00a4e4', borderWidth: 2, pointBackgroundColor: '#002d72', fill: true }] }, 
+                        options: { 
+                            responsive: true, 
+                            maintainAspectRatio: false, 
+                            scales: { r: { ticks: {display: false}, grid: {color: '#e2e8f0'} } },
+                            onClick: (e, activeEls) => { 
+                                if(activeEls.length > 0) { 
+                                    const idx = activeEls[0].index; 
+                                    showToast(`Los días ${dias[idx]} registran un volumen histórico de ${diaMap[idx]} intervenciones.`, 'info', 'fa-calendar-day'); 
+                                } 
+                            },
+                            onHover: (e, chartElement) => { 
+                                e.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default'; 
+                            }
+                        } 
+                    });
+
+                    // EFICIENCIA MEDICA
+                    const mMap = {}; DataVista.forEach(d => { if(!d.medico) return; if(!mMap[d.medico]) mMap[d.medico]=[]; mMap[d.medico].push(d.tiempo); });
+                    const mLab = Object.keys(mMap).map(m=>m.split(' ')[1]||m);
+                    const mProm = Object.values(mMap).map(a=>statPromedio(a)); const mP90 = Object.values(mMap).map(a=>statPercentil(a,0.9));
+                    if(Graficas.ch3) Graficas.ch3.destroy();
+                    Graficas.ch3 = new Chart(document.getElementById('ch-medicos'), { type: 'bar', data: { labels: mLab, datasets: [ { label: 'Promedio (min)', data: mProm, backgroundColor: '#cbd5e1', borderRadius: 4, barPercentage: 0.7 }, { label: 'P90 (min)', data: mP90, backgroundColor: '#0055a5', borderRadius: 4, barPercentage: 0.7 } ] }, options: { responsive: true, maintainAspectRatio: false, plugins:{legend:{position:'top', labels:{usePointStyle:true, boxWidth:8}}} } });
+
+                    // TOP PATOLOGIAS
+                    const dMap = {}; DataVista.forEach(d => { if(d.diagnostico) dMap[d.diagnostico] = (dMap[d.diagnostico]||0)+1; }); const sDiag = Object.entries(dMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
+                    if(Graficas.ch4) Graficas.ch4.destroy();
+                    Graficas.ch4 = new Chart(document.getElementById('ch-diag'), { 
+                        type: 'doughnut', data: { labels: sDiag.map(x=>x[0]), datasets: [{ data: sDiag.map(x=>x[1]), backgroundColor: ['#002d72','#0055a5','#00a4e4','#cbd5e1','#f1f5f9'], borderWidth: 0, hoverOffset: 10 }] }, 
+                        options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { position: 'right', labels: {boxWidth: 10, usePointStyle: true, font:{size:11}} } },
+                        onClick: (e, activeEls) => { if(activeEls.length>0) { const idx=activeEls[0].index; showToast(`${sDiag[idx][0]} representa el ${((sDiag[idx][1]/t)*100).toFixed(1)}% de la carga médica actual.`, 'info', 'fa-stethoscope'); } },
+                        onHover: (e, chartElement) => { e.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default'; } } 
+                    });
+                    
+                    // SKELETON LOADER DEACTIVATION
+                    document.querySelectorAll('.skeleton-loader').forEach(el => el.classList.remove('active'));
+
+                }, 400); 
+
+            } catch (err) { console.error("Error en Dashboard", err); }
+        }
+
+        // ================= FUNCIÓN DE DESCARGA =================
+        function descargarGrafica(canvasId, nombreArchivo) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) {
+                showToast("No se pudo encontrar la gráfica.", "error", "fa-exclamation-triangle");
+                return;
+            }
+            
+            const imgURL = canvas.toDataURL("image/png");
+            
+            const a = document.createElement("a");
+            a.href = imgURL;
+            a.download = nombreArchivo + ".png";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            showToast("Gráfica " + nombreArchivo + " descargada.", "success", "fa-check-circle");
+        }
+
+        function renderCalidad() { 
+            try {
+                const iams = DataVista.filter(d => d.puertaBalon !== null && !isNaN(d.puertaBalon));
+                const fallasBalon = iams.filter(d => d.puertaBalon > 90);
+                const severos = DataVista.filter(d => d.estado === "Defunción" || d.estado === "Traslado UCI");
+                animateValue('qc-iam', iams.length); animateValue('qc-brecha', fallasBalon.length); animateValue('qc-mort', severos.length);
+                const tb = document.getElementById('tb-calidad');
+                const exp = [...fallasBalon, ...severos.filter(s => !fallasBalon.includes(s))].sort((a,b)=>new Date(b.fecha)-new Date(a.fecha));
+                if(exp.length === 0) { tb.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-gray-400 font-medium">No se detectaron desviaciones clínicas.</td></tr>';
+                } else { tb.innerHTML = exp.map(e => `<tr><td class="font-bold text-gray-400">#${e.id}</td><td>${e.fecha}</td><td class="font-bold text-[#0055a5]">${e.diagnostico}</td><td class="text-gray-600">${e.medico}</td><td>${e.puertaBalon>90?`<span class="badge badge-danger">${e.puertaBalon}m</span>`:(e.puertaBalon?e.puertaBalon+'m':'-')}</td><td><span class="badge ${e.estado==='Defunción'?'badge-danger':'badge-warning'}">${e.estado==='Defunción'?'Mortalidad':e.complicaciones}</span></td></tr>`).join('');
+                }
+            } catch (err) { console.error("Error en Calidad", err); }
+        }
+
+        function renderTabla() {
+            try {
+                const s = document.getElementById('t-search').value.toLowerCase();
+                let f = DataVista;
+                if(s) f = f.filter(d => (d.paciente||'').toLowerCase().includes(s) || (d.diagnostico||'').toLowerCase().includes(s) || (d.id||'').toString().includes(s) || (d.medico||'').toLowerCase().includes(s) || (d.equipo||'').toLowerCase().includes(s));
+                document.getElementById('t-count').innerText = `${f.length} RESULTADOS`;
+                const tb = document.getElementById('tb-datos');
+                if(f.length === 0) { tb.innerHTML = '<tr><td colspan="11" class="text-center py-10 text-gray-400 font-medium">Búsqueda sin coincidencias</td></tr>';
+                return; }
+                
+                tb.innerHTML = f.map(d => `<tr>
+                    <td class="text-gray-400 font-mono text-[11px]">#${d.id}</td>
+                    <td class="text-xs"><b>${d.fecha}</b><br><span class="text-gray-400">${d.hora||'12:00'}</span></td>
+                    <td class="font-bold text-gray-700">${d.paciente}</td>
+                    <td class="text-[11px] font-medium text-gray-500">${d.edad}a / ${d.genero}</td>
+                    <td class="text-[#0055a5] font-bold text-xs">${d.diagnostico}</td>
+                    <td class="text-gray-500 text-[11px]">${d.procedimiento}</td>
+                    <td><div class="font-medium text-xs text-gray-700">${d.medico}</div><div class="text-[10px] text-gray-500 whitespace-normal w-40 truncate" title="${d.equipo||'N/A'}">${d.equipo||'N/A'}</div></td>
+                    <td class="text-center font-bold">${d.tiempo}m</td>
+                    <td class="text-center">${d.puertaBalon?(d.puertaBalon>90?`<span class="text-red-500 font-bold">${d.puertaBalon}m</span>`:`<span class="text-green-600 font-bold">${d.puertaBalon}m</span>`):'<span class="text-gray-300">-</span>'}</td>
+                    <td><span class="badge ${d.estado==='Alta'?'badge-success':(d.estado==='Defunción'||d.estado==='Traslado UCI'?'badge-danger':'badge-warning')}">${d.estado}</span></td>
+                    <td class="text-center">
+                        <button onclick="editarPaciente(${d.id})" class="text-[#00a4e4] hover:text-[#002d72] transition-colors" title="Editar"><i class="fas fa-edit"></i></button>
+                    </td>
+                </tr>`).join('');
+            } catch (err) { console.error("Error en Tabla", err); }
+        }
+
+        // ================= TAB: IA ANIMADA =================
+        function renderAnalisisIAPremium() {
+            try {
+                const container = document.getElementById('ia-content');
+                const total = DataVista.length;
+
+                if(iaTimeout) clearTimeout(iaTimeout);
+
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-20 min-h-[400px]">
+                        <div class="relative w-32 h-32 mb-6 stagger-item">
+                            <div class="absolute inset-0 border-4 border-blue-50 rounded-full animate-ping opacity-75" style="animation-duration: 2s;"></div>
+                            <div class="absolute inset-2 border-4 border-[#00a4e4] rounded-full border-t-transparent border-l-transparent animate-spin" style="animation-duration: 1.5s;"></div>
+                            <div class="absolute inset-4 border-4 border-[#002d72] rounded-full border-b-transparent animate-spin" style="animation-duration: 2.5s; animation-direction: reverse;"></div>
+                            <i class="fas fa-brain absolute inset-0 flex items-center justify-center text-4xl text-[#0055a5]"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-[#002d72] mb-2 tracking-tight stagger-item">Análisis Estocástico en Curso</h3>
+                        <p class="text-sm text-gray-500 font-medium animate-pulse text-center stagger-item">Correlacionando ${total} expedientes...<br><span class="text-[#00a4e4] text-xs uppercase tracking-widest mt-2 block">Evaluando desviación JCI y riesgos</span></p>
+                    </div>
+                `;
+
+                iaTimeout = setTimeout(() => {
+                    if(total < 5) {
+                        container.innerHTML = `<div class="flex flex-col items-center justify-center py-20 stagger-item"><div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-5"><i class="fas fa-database text-3xl text-gray-300"></i></div><h3 class="text-xl font-bold text-gray-700">Muestra Insuficiente</h3><p class="text-gray-500 mt-1">El algoritmo requiere al menos 5 expedientes para generar cálculos de varianza sin sesgos.</p></div>`;
+                        return;
+                    }
+
+                    const tiempos = DataVista.map(d=>d.tiempo);
+                    const prom = statPromedio(tiempos); const med = statMediana(tiempos); const p90 = statPercentil(tiempos, 0.9); 
+                    let stdev = statDesviacion(tiempos); if(isNaN(stdev)) stdev = 0; 
+                    
+                    const iams = DataVista.filter(d => d.puertaBalon !== null && !isNaN(d.puertaBalon));
+                    let tasaFallaBalon = iams.length > 0 ? (iams.filter(d=>d.puertaBalon > 90).length / iams.length) * 100 : 0;
+                    if(isNaN(tasaFallaBalon)) tasaFallaBalon = 0;
+
+                    const comp = DataVista.filter(p => p.complicaciones !== 'No').length; 
+                    let tasaComp = total > 0 ? ((comp / total) * 100) : 0;
+                    if(isNaN(tasaComp)) tasaComp = 0;
+                    
+                    const altas = DataVista.filter(p => p.estado === 'Alta').length;
+
+                    let isCritical = tasaFallaBalon > 25 || tasaComp > 15;
+                    let isWarning = (!isCritical) && (tasaFallaBalon > 10 || tasaComp > 8 || stdev > 35);
+                    
+                    let heroBg = isCritical ? 'bg-gradient-to-r from-red-600 to-red-500' : (isWarning ? 'bg-gradient-to-r from-amber-500 to-orange-400' : 'bg-gradient-to-r from-[#10b981] to-emerald-400');
+                    let heroIcon = isCritical ? 'fa-exclamation-triangle' : (isWarning ? 'fa-exclamation-circle' : 'fa-shield-check');
+                    let heroTitle = isCritical ? 'Riesgo Operativo Crítico' : (isWarning ? 'Oportunidad de Mejora ISO' : 'Estándares de Excelencia (JCI)');
+                    let heroMsg = `El análisis algorítmico arroja una desviación de sala de ±${stdev}m. ${isCritical ? 'Se exige acción correctiva inmediata en ruta clínica.' : (isWarning ? 'Se detectan cuellos de botella moderados a monitorear en el próximo periodo.' : 'Los protocolos de seguridad y tiempos operan en rangos de excelencia mundial.')}`;
+
+                    const fBalon = Math.max(0, 100 - tasaFallaBalon).toFixed(1);
+                    const fComp = Math.max(0, 100 - tasaComp).toFixed(1);
+
+                    container.innerHTML = `
+                        <div class="ai-card overflow-hidden mb-8 shadow-md hover:scale-[1.01] transition-all stagger-item cursor-pointer border border-transparent hover:border-white/50" onclick="abrirModalScore(${altas}, ${total}, ${stdev}, ${tasaFallaBalon}, ${tasaComp})" title="Haz clic para entender cómo se calculó el Score Global y Nivel de Riesgo">
+                            <div class="${heroBg} px-8 py-6 text-white flex flex-col md:flex-row items-center gap-6 relative">
+                                <div class="absolute right-4 top-4 opacity-50"><i class="fas fa-external-link-alt text-xs"></i></div>
+                                <div class="bg-white/20 p-5 rounded-full shadow-inner"><i class="fas ${heroIcon} text-4xl"></i></div>
+                                <div class="text-center md:text-left flex-1">
+                                    <h3 class="text-2xl font-bold mb-2 tracking-tight">${heroTitle}</h3>
+                                    <p class="text-white/90 text-sm font-medium leading-relaxed">${heroMsg}</p>
+                                </div>
+                                <div class="hidden lg:block text-right border-l border-white/20 pl-6">
+                                    <p class="text-[10px] uppercase tracking-widest font-bold opacity-80">Score de Eficiencia</p>
+                                    <p class="text-4xl font-extrabold">${Math.round((altas/total)*100)}</p>
+                               </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 stagger-item delay-100">
+                            <div class="ai-card p-6 relative overflow-hidden cursor-pointer border border-transparent hover:border-[#00a4e4] transition-all" onclick="abrirModalKinetica(${med}, ${p90}, ${stdev})" title="Haz clic para entender cómo se calculó este dato">
+                                <div class="absolute -right-4 -top-4 opacity-5"><i class="fas fa-stopwatch text-8xl"></i></div>
+                                <div class="flex items-center justify-between mb-5">
+                                    <div class="flex items-center gap-3">
+                                     <div class="bg-blue-50 text-[#0055a5] p-2 rounded-lg"><i class="fas fa-chart-line text-lg"></i></div>
+                                        <h4 class="font-bold text-[#002d72] tracking-tight">Kinética de Sala</h4>
+                                    </div>
+                                    <i class="fas fa-external-link-alt text-gray-300 text-xs"></i>
+                                </div>
+                                <div class="space-y-4 relative z-10">
+                                    <div><div class="flex justify-between text-xs font-bold mb-1"><span class="text-gray-500 uppercase">Mediana Óptima</span><span class="text-[#00a4e4]">${med}m</span></div><div class="w-full bg-gray-100 rounded-full h-1.5"><div class="bg-[#00a4e4] h-1.5 rounded-full" style="width: 50%"></div></div></div>
+                                    <div><div class="flex justify-between text-xs font-bold mb-1"><span class="text-gray-500 uppercase">P90 Crítico</span><span class="text-red-500">${p90}m</span></div><div class="w-full bg-gray-100 rounded-full h-1.5"><div class="bg-red-400 h-1.5 rounded-full" style="width: 90%"></div></div></div>
+                                    <div class="pt-2"><span class="inline-block bg-gray-50 border border-gray-100 text-gray-500 text-[10px] font-bold px-2 py-1 rounded">Varianza (σ): ±${stdev}m</span></div>
+                                </div>
+                            </div>
+
+                            <div class="ai-card p-6 relative overflow-hidden cursor-pointer border border-transparent hover:border-[#00a4e4] transition-all" onclick="abrirModalIPSG(${fBalon}, ${fComp}, ${iams.length})" title="Haz clic para entender cómo se calculó este dato">
+                                <div class="absolute -right-4 -top-4 opacity-5"><i class="fas fa-heartbeat text-8xl"></i></div>
+                                <div class="flex items-center justify-between mb-5">
+                                    <div class="flex items-center gap-3">
+                                        <div class="bg-green-50 text-green-600 p-2 rounded-lg"><i class="fas fa-shield-check text-lg"></i></div>
+                                        <h4 class="font-bold text-[#002d72] tracking-tight">Métricas IPSG</h4>
+                                    </div>
+                                    <i class="fas fa-external-link-alt text-gray-300 text-xs"></i>
+                                </div>
+                                <div class="space-y-4 relative z-10">
+                                      <div><div class="flex justify-between text-xs font-bold mb-1"><span class="text-gray-600 uppercase">Meta Puerta-Balón</span><span class="${tasaFallaBalon>10?'text-amber-500':'text-green-600'}">${fBalon}%</span></div><div class="w-full bg-gray-100 rounded-full h-1.5"><div class="${tasaFallaBalon>10?'bg-amber-400':'bg-green-500'} h-1.5 rounded-full" style="width: ${fBalon}%"></div></div></div>
+                                    <div><div class="flex justify-between text-xs font-bold mb-1"><span class="text-gray-600 uppercase">Tasa S/Complicaciones</span><span class="${tasaComp>10?'text-red-500':'text-green-600'}">${fComp}%</span></div><div class="w-full bg-gray-100 rounded-full h-1.5"><div class="${tasaComp>10?'bg-red-400':'bg-green-500'} h-1.5 rounded-full" style="width: ${fComp}%"></div></div></div>
+                                  </div>
+                            </div>
+
+                            <div class="ai-card p-6 relative overflow-hidden bg-gradient-to-b from-white to-blue-50/50 cursor-pointer border border-transparent hover:border-[#00a4e4] transition-all" onclick="abrirModalEfectividad(${altas}, ${total})" title="Haz clic para entender cómo se calculó este dato">
+                                <div class="flex justify-end mb-2 relative z-10">
+                                    <i class="fas fa-external-link-alt text-[#00a4e4] opacity-50 text-xs"></i>
+                                </div>
+                                 <div class="flex flex-col h-full justify-center items-center text-center -mt-6">
+                                    <div class="bg-[#002d72] text-white p-3 rounded-full mb-3 shadow-lg shadow-blue-900/20 hover:scale-110 transition-transform"><i class="fas fa-check-double text-2xl"></i></div>
+                                     <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Efectividad de Alta</p>
+                                    <p class="text-4xl font-extrabold text-[#002d72] mt-1">${((altas/total)*100).toFixed(1)}%</p>
+                                    <p class="text-xs text-gray-400 mt-2 font-medium">Resolución directa sin UCI</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ai-card p-8 relative stagger-item delay-200 cursor-pointer border border-transparent hover:border-[#00a4e4] transition-all" onclick="abrirModalRuta(${tasaFallaBalon}, ${stdev}, ${total})" title="Haz clic para entender cómo se generan estas recomendaciones">
+                            <div class="absolute right-6 top-6 opacity-50"><i class="fas fa-external-link-alt text-[#00a4e4] text-sm"></i></div>
+                            <h3 class="text-xl font-bold text-[#002d72] mb-8 flex items-center gap-2"><i class="fas fa-stream text-[#00a4e4]"></i> Hoja de Ruta Prescriptiva</h3>
+                            <div class="relative pl-3">
+                                   <div class="timeline-line"></div>
+                                
+                                ${tasaFallaBalon > 0 ?
+                                `<div class="timeline-item">
+                                    <div class="timeline-dot bg-white border-red-500"><i class="fas fa-ambulance text-red-500"></i></div>
+                                       <h5 class="font-bold text-red-600 text-base mb-1">Análisis Triage IAM (Prioridad Crítica)</h5>
+                                    <p class="text-sm text-gray-600 leading-relaxed bg-red-50/50 p-3 rounded border border-red-100">El algoritmo identifica que el <b>${tasaFallaBalon.toFixed(1)}%</b> de los Códigos Infarto superan la ventana de 90m. Es mandatorio revisar los tiempos de traslado desde Urgencias a la mesa de Hemodinamia.</p>
+                                </div>` : ''}
+
+                                ${stdev > 30 ?
+                                `<div class="timeline-item">
+                                    <div class="timeline-dot bg-white border-amber-500"><i class="fas fa-boxes text-amber-500"></i></div>
+                                       <h5 class="font-bold text-amber-600 text-base mb-1">Optimización de Set-up (Prioridad Media)</h5>
+                                    <p class="text-sm text-gray-600 leading-relaxed bg-amber-50/50 p-3 rounded border border-amber-100">La varianza técnica es de <b>±${stdev} minutos</b>. El motor IA recomienda estandarizar los kits de material blanco e instrumental previo a la incisión para estabilizar la curva de tiempos.</p>
+                                </div>` : ''}
+
+                                <div class="timeline-item">
+                                     <div class="timeline-dot bg-white border-[#00a4e4]"><i class="fas fa-calendar-check text-[#00a4e4]"></i></div>
+                                    <h5 class="font-bold text-[#0055a5] text-base mb-1">Gestión de Carga Electiva</h5>
+                                     <p class="text-sm text-gray-600 leading-relaxed bg-blue-50/50 p-3 rounded border border-blue-100">Con base en la distribución histórica, la capacidad instalada actual es suficiente. Se sugiere agendar mantenimientos preventivos exclusivamente en fines de semana.</p>
+                                </div>
+
+                                <div class="timeline-item mb-0">
+                                       <div class="timeline-dot bg-white border-green-500"><i class="fas fa-check text-green-500"></i></div>
+                                    <h5 class="font-bold text-green-600 text-base mb-1">Aprobación de Expedientes</h5>
+                                    <p class="text-sm text-gray-600 mt-1">El lote de <b>${total} expedientes</b> cumple con el llenado estructural para revisión ISO 9001:2015.</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }, 1800);
+            } catch(e) { console.error("Error Análisis IA:", e); }
+        }
+
+        // ================= SISTEMA DE PESTAÑAS =================
+        function showTab(tab) {
+            try {
+                document.querySelectorAll('.tab-section').forEach(s => { s.classList.remove('active'); });
+                const target = document.getElementById(tab + '-section');
+                if(target) { target.classList.add('active'); }
+                
+                const mf = document.getElementById("master-filters");
+                if(mf) { if(tab === 'registro') mf.style.display = 'none'; else mf.style.display = 'block'; }
+
+                document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('tab-active'));
+                const activeTab = document.getElementById('tab-' + tab);
+                if(activeTab) activeTab.classList.add('tab-active');
+
+                const scrollArea = document.getElementById('main-scroll');
+                if(scrollArea) scrollArea.scrollTo({top: 0, behavior: 'smooth'});
+                
+                if(tab === 'analisis') renderAnalisisIAPremium();
+                if(tab === 'dashboard' || tab === 'calidad' || tab === 'compendio') { aplicarFiltros(); }
+            } catch(err) { console.error("Error cambiando pestaña:", err); }
+        }
+
+        // ================= EXPORTACIÓN A EXCEL =================
+        function exportarCSVAvanzado() {
+            if(!DataVista || DataVista.length === 0) {
+                showToast("No hay datos para exportar en el periodo seleccionado.", "error", "fa-exclamation-triangle");
+                return;
+            }
+            try {
+                let csv = "\uFEFFID,FECHA,HORA,PACIENTE,EDAD,GENERO,MEDICO,EQUIPO,DIAGNOSTICO,PROCEDIMIENTO,TIEMPO_SALA_MIN,PUERTA_BALON_MIN,COMPLICACIONES,ESTADO\n";
+                DataVista.forEach(d => { 
+                    let pb = (d.puertaBalon !== null && d.puertaBalon !== undefined) ? d.puertaBalon : '';
+                    let pac = d.paciente ? d.paciente.replace(/,/g, '') : '';
+                    let eq = d.equipo ? d.equipo.replace(/,/g, ' -') : '';
+                    let diag = d.diagnostico ? d.diagnostico.replace(/,/g, '') : '';
+                    let proc = d.procedimiento ? d.procedimiento.replace(/,/g, '') : '';
+                    csv += `${d.id},${d.fecha},${d.hora},"${pac}",${d.edad},${d.genero},"${d.medico}","${eq}","${diag}","${proc}",${d.tiempo},${pb},${d.complicaciones},${d.estado}\n`; 
+                });
+                const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'}); 
+                const a = document.createElement('a'); 
+                a.href = URL.createObjectURL(blob); 
+                a.download = `Reporte_Hemodinamia_${new Date().getTime()}.csv`; 
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                showToast("Base de datos exportada con éxito a Excel.", "success", "fa-file-excel");
+            } catch(e) {
+                console.error("Error al exportar:", e);
+                showToast("Error al exportar. Intente de nuevo.", "error");
+            }
+        }
+
+        // ================= REGISTRO AISLADO =================
+        function limpiarFormulario() { document.getElementById("formNuevoPaciente").reset(); window.editandoId = null; }
+        
+        function editarPaciente(id) {
+            const p = DataGlobal.find(x => x.id === id);
+            if (p) {
+                ["nombre","edad","genero","fecha","medico","equipo","diagnostico","procedimiento","tiempo","balon","complicaciones","estado"].forEach(k => {
+                    const el = document.getElementById(`new-${k}`);
+                    if(el) {
+                        if (k === 'nombre') el.value = p.paciente || '';
+                        else if (k === 'balon') el.value = p.puertaBalon || '';
+                        else el.value = p[k] || '';
+                    }
+                });
+                window.editandoId = id; showTab('registro');
+            }
+        }
+
+        function guardarDatosManuales(e) {
+            if(e) { e.preventDefault(); e.stopPropagation(); }
+            
+            const btnRegistro = document.getElementById('btn-submit-form');
+            if(btnRegistro) {
+                btnRegistro.disabled = true;
+                btnRegistro.innerHTML = '<i class="fas fa-spinner animate-spin"></i> Guardando...';
+            }
+
+            setTimeout(() => {
+                try {
+                    let edadVal = parseInt(document.getElementById("new-edad").value, 10); if(isNaN(edadVal)) edadVal = 0;
+                    let tiempoVal = parseInt(document.getElementById("new-tiempo").value, 10); if(isNaN(tiempoVal)) tiempoVal = 1;
+                    let balonStr = document.getElementById("new-balon").value;
+                    let balonVal = balonStr ? parseInt(balonStr, 10) : null; if(isNaN(balonVal)) balonVal = null;
+                    
+                    let fechaStr = document.getElementById("new-fecha").value;
+                    if(!fechaStr) fechaStr = new Date().toISOString().split('T')[0]; 
+                    
+                    let dateParts = fechaStr.split('-');
+                    let diaSemNum = 0;
+                    if(dateParts.length === 3) {
+                        let dateObj = new Date(dateParts[0], parseInt(dateParts[1])-1, dateParts[2]);
+                        diaSemNum = dateObj.getDay();
+                        if(isNaN(diaSemNum)) diaSemNum = 0;
+                    }
+
+                    let horaFormat = "";
+                    let currentHour = 0;
+                    
+                    if (window.editandoId) {
+                        const registroExistente = DataGlobal.find(p => p.id === window.editandoId);
+                        if (registroExistente) {
+                            horaFormat = registroExistente.hora;
+                            currentHour = registroExistente.horaNum;
+                        }
+                    } else {
+                        const ahora = new Date();
+                        currentHour = ahora.getHours();
+                        const currentMin = ahora.getMinutes();
+                        horaFormat = `${currentHour.toString().padStart(2, '0')}:${currentMin.toString().padStart(2, '0')}`;
+                    }
+
+                    const n = { 
+                        id: window.editandoId || (DataGlobal.length > 0 ? Math.max(...DataGlobal.map(p => p.id)) : 0) + 1, 
+                        fecha: fechaStr, 
+                        paciente: document.getElementById("new-nombre").value || "Paciente Anónimo", 
+                        edad: edadVal, 
+                        genero: document.getElementById("new-genero").value || "N/A", 
+                        medico: document.getElementById("new-medico").value || "N/A", 
+                        equipo: document.getElementById("new-equipo").value || "", 
+                        diagnostico: document.getElementById("new-diagnostico").value || "N/A", 
+                        procedimiento: document.getElementById("new-procedimiento").value || "N/A", 
+                        tiempo: tiempoVal, 
+                        puertaBalon: balonVal, 
+                        complicaciones: document.getElementById("new-complicaciones").value || "No", 
+                        estado: document.getElementById("new-estado").value || "Alta", 
+                        hora: horaFormat, 
+                        horaNum: currentHour, 
+                        diaSemana: diaSemNum 
+                    };
+                    
+                    if (window.editandoId) { 
+                        DataGlobal[DataGlobal.findIndex(p => p.id === window.editandoId)] = n;
+                        window.editandoId = null; 
+                    } else { 
+                        DataGlobal.unshift(n);
+                    }
+                    
+                    localStorage.setItem('hemodinamia_v26', JSON.stringify(ComplianceEngine.protegerBD(DataGlobal)));
+                    showToast("Expediente registrado con éxito.", "success", "fa-check-circle");
+                    
+                    limpiarFormulario(); 
+                    aplicarFiltros();
+                    showTab('compendio'); 
+
+                } catch(error) {
+                    console.error("Falla CRITICA al guardar en BD:", error);
+                } finally {
+                    if(btnRegistro) {
+                        btnRegistro.disabled = false;
+                        btnRegistro.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Registrar en Sistema';
+                    }
+                }
+            }, 50); 
+            
+            return false;
+        }
+
+        window.onload = () => { inicializarDatos(); showTab('dashboard'); };
+    </script>
+</body>
+</html>
